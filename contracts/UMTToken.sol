@@ -12,31 +12,31 @@ contract UMTToken is MintableToken, CirculatingToken, MultiControlledMixin {
     using SafeMath for uint256;
 
     event Burn(address indexed to, uint256 amount);
+    event Activate(address sender);
 
-    function UMTToken(address funds, address sale)
+    function UMTToken(address funds)
     MintableToken()
     CirculatingToken()
     {
-        require(funds != 0);
+        require(funds != address(0));
 
         totalSupply = 1000000;
 
-        balances[sale] = 500000;
-        Transfer(this, sale, 500000);
-
         balances[funds] = 500000;
         Transfer(this, funds, 500000);
+        balances[this] = 500000;
+        Transfer(this, this, 500000);
 
         enableCirculation();
     }
 
     /// @dev mint actually transfers tokens from local balance to owner's
     function mint(address _to, uint256 _amount) external onlyControllers {
-        uint nFreeTokens = balances[msg.sender];
+        uint256 nFreeTokens = balances[this];
         require(nFreeTokens >= _amount);
 
         balances[_to] = balances[_to].add(_amount);
-        balances[msg.sender] = balances[msg.sender].sub(_amount);
+        balances[this] = balances[this].sub(_amount);
 
         Transfer(this, _to, _amount);
     }
@@ -49,7 +49,7 @@ contract UMTToken is MintableToken, CirculatingToken, MultiControlledMixin {
         totalSupply = totalSupply.sub(_amount);
         balances[msg.sender] = balances[msg.sender].sub(_amount);
         Burn(msg.sender, _amount);
-        Transfer(msg.sender, this, _amount);
+        Transfer(msg.sender, address(0), _amount);
     }
 
     // FIELDS

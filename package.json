@@ -16,7 +16,7 @@
     "contracts",
     "security"
   ],
-  "author": "Eenae",
+  "author": "Karbachinsky",
   "license": "Apache-2.0",
   "homepage": "http://bubbletone.io",
   "devDependencies": {
@@ -30,6 +30,6 @@
     "solidity-coverage": "^0.2.2",
     "truffle": "^3.4.6",
     "zeppelin-solidity": "1.2.0",
-    "mixbytes-solidity": "git://github.com/mixbytes/solidity"
+    "mixbytes-solidity": "0.1.5"
   }
 }

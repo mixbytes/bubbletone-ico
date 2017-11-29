@@ -3,8 +3,6 @@ pragma solidity 0.4.18;
 
 import 'mixbytes-solidity/contracts/token/CirculatingToken.sol';
 import 'zeppelin-solidity/contracts/math/SafeMath.sol';
-import 'mixbytes-solidity/contracts/token/MintableToken.sol';
-//import './mixins/MultiControlledMixin.sol';
 
 
 /// @title ICOPlate coin contract

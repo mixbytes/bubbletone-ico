@@ -30,14 +30,15 @@ contract('UMTToken', function(accounts) {
     };
 
     async function deployToken() {
-        const token = await UMTToken.new(roles.cash, roles.sale1, {from: roles.owner1});
+        const token = await UMTToken.new(roles.funds, roles.sale1, {from: roles.owner1});
 
         return [token, roles.funds, roles.sale1];
     };
 
     describe('Token circulation tests', function() {
         it("Circulation enabled at start", async function() {
-            const token = await deployToken();
+            const [token, funds, sale] = await deployToken();
+
             assert.equal(await token.m_isCirculating(), true);
         });
 
@@ -45,13 +46,11 @@ contract('UMTToken', function(accounts) {
             const [token, funds, sale] = await deployToken();
 
             assert.equal(await token.balanceOf(funds, {from: roles.nobody}), 500000000);
-
             await token.transfer(roles.nobody, 100000000, {from: funds});
             assert.equal(await token.balanceOf(funds, {from: roles.nobody}), 400000000);
-
             // nobody else has tokens
             assert.equal(await token.balanceOf(roles.owner1, {from: roles.nobody}), 0);
-            assert.equal(await token.balanceOf(controller, {from: roles.nobody}), 0);
+            assert.equal(await token.balanceOf(roles.investor3, {from: roles.nobody}), 0);
         });
     });
 
@@ -63,13 +62,13 @@ contract('UMTToken', function(accounts) {
 
             let balance = await token.balanceOf(funds);
 
-            assert(balance.eq(new web3.BigNumber(499000)));
+            assert(balance.eq(new web3.BigNumber(500000000 - 1000)));
         });
 
         it("Burn more then you have", async function() {
             const [token, funds, sale] = await deployToken();
 
-            await expectThrow(token.burn(1000000, {from: roles.funds}));
+            await expectThrow(token.burn(1000000000, {from: roles.funds}));
         });
 
         it("Burn when you have nothing", async function() {

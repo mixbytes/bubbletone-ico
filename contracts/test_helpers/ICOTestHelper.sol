@@ -1,4 +1,4 @@
-pragma solidity 0.4.15;
+pragma solidity 0.4.18;
 
 import './PreICOTestHelper.sol';
 
@@ -7,8 +7,8 @@ import './PreICOTestHelper.sol';
 contract ICOTestHelper is PreICOTestHelper {
     using SafeMath for uint256;
 
-    function ICOTestHelper(address token, address funds)
-    PreICOTestHelper(token, funds)
+    function ICOTestHelper(address[] _owners, address funds) public
+    PreICOTestHelper(_owners, funds)
     {
     }
 }

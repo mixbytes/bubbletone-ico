@@ -5,21 +5,51 @@ import './PreICO.sol';
 
 /// @title ICOPlate pre-sale contract
 contract ICO is PreICO {
-    /// @notice all params are set by owners to start sale
-    modifier everythingIsSetByOwners() {
-        require(m_StartTime != 0 && m_EndTime != 0 && address(m_token) != address(0));
-        _;
-    }
-
     function ICO(address[] _owners, address funds)
     PreICO(_owners, funds)
-    {}
+    {
+    }
 
     function transferTokensToNextSale() internal {
         // No next sale after ICO
     }
 
+    /// @notice set token address
+    function setToken(address _token) public onlymanyowners(keccak256(msg.data)) {
+        require(address(m_token) == address(0));
+
+        m_token = UMTToken(_token);
+        SetToken(_token);
+
+        m_tokensHardCap = m_token.balanceOf(address(this));
+
+        assert(m_tokensHardCap != 0);
+
+        if (m_tokensHardCap > 250000000)
+            m_tokensHardCap = 250000000;
+    }
+
+    function finish() internal {
+        super.finish();
+
+        // Burn all lasting tokens
+        uint tokensLeft = m_token.balanceOf(address(this));
+        if (0 != tokensLeft)
+            m_token.burn(tokensLeft);
+    }
+
+    /// @notice maximum tokens to be sold during sale.
+    function getMaximumTokens() internal constant returns (uint) {
+        return m_tokensHardCap;
+    }
+
+    /// @notice whether there is a next sale after this
+    function hasNextSale() internal constant returns (bool) {
+        return false;
+    }
+
     /// @notice starting exchange rate of UMT
     // FIXME: need details
     uint public constant c_UMTperETH = 50000;
+    uint m_tokensHardCap;
 }

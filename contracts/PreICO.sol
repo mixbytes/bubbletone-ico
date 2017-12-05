@@ -15,10 +15,16 @@ contract PreICO is multiowned, ReentrancyGuard, StatefulMixin, ExternalAccountWa
     event SetToken(address token);
     event SetNextSale(address sale);
     event SellTokens(address investor, uint tokens, uint payment);
+    event SetTime(uint time, bool isStart);
 
     /// @notice all params are set by owners to start sale
     modifier everythingIsSetByOwners() {
-        require(m_StartTime != 0 && m_EndTime != 0 && address(m_token) != address(0) && m_nextSale != address(0));
+        require(m_StartTime != 0 && m_EndTime != 0 && address(m_token) != address(0));
+
+        if (hasNextSale()) {
+            require(address(m_nextSale) != address(0));
+        }
+
         _;
     }
 
@@ -36,14 +42,16 @@ contract PreICO is multiowned, ReentrancyGuard, StatefulMixin, ExternalAccountWa
     }
 
     /// @notice crowdsale participation
-    function buy() public payable {     // dont mark as external!
+    function buy() public payable {     // don't mark as external!
         buyInternal(msg.sender, msg.value);
     }
 
     /// PUBLIC METHODS
 
     /// @notice set token address
-    function setToken(address _token) public onlymanyowners(keccak256(msg.data)) {
+    function setToken(address _token) public onlymanyowners(keccak256(msg.data))
+    exceptsState(State.SUCCEEDED)
+    {
         // Could be called only once
         require(address(m_token) == address(0));
 
@@ -52,7 +60,9 @@ contract PreICO is multiowned, ReentrancyGuard, StatefulMixin, ExternalAccountWa
     }
 
     /// @notice set next sale address to transfer lasting tokens after sale
-    function setNextSale(address sale) public onlymanyowners(keccak256(msg.data)) {
+    function setNextSale(address sale) public onlymanyowners(keccak256(msg.data))
+    exceptsState(State.SUCCEEDED)
+    {
         // Could be called only once
         require(m_nextSale == address(0));
 
@@ -61,7 +71,9 @@ contract PreICO is multiowned, ReentrancyGuard, StatefulMixin, ExternalAccountWa
     }
 
     /// @notice set start time of the sale
-    function setStartTime(uint _time) public onlymanyowners(keccak256(msg.data)) {
+    function setStartTime(uint _time) public onlymanyowners(keccak256(msg.data))
+    exceptsState(State.SUCCEEDED)
+    {
         require(_time >= getCurrentTime());
 
         // Check if sale has already started
@@ -72,10 +84,14 @@ contract PreICO is multiowned, ReentrancyGuard, StatefulMixin, ExternalAccountWa
             require(_time < m_EndTime);
 
         m_StartTime = _time;
+
+        SetTime(_time, true);
     }
 
     /// @notice set end time of the sale
-    function setEndTime(uint _time) public onlymanyowners(keccak256(msg.data)) {
+    function setEndTime(uint _time) public onlymanyowners(keccak256(msg.data))
+    exceptsState(State.SUCCEEDED)
+    {
         require(_time >= getCurrentTime());
 
         // Check if sale has already started
@@ -86,10 +102,13 @@ contract PreICO is multiowned, ReentrancyGuard, StatefulMixin, ExternalAccountWa
             require(_time > m_StartTime);
 
         m_EndTime = _time;
+
+        SetTime(_time, false);
     }
 
     /// @notice pauses sale
     function pause() external requiresState(State.RUNNING) onlyowner
+    exceptsState(State.SUCCEEDED)
     {
         changeState(State.PAUSED);
     }
@@ -106,12 +125,14 @@ contract PreICO is multiowned, ReentrancyGuard, StatefulMixin, ExternalAccountWa
     function calculateTokens(address /*investor*/, uint payment) internal constant returns (uint) {
         uint rate = c_UMTperETH;
 
-        return payment.mul(rate);
+        // FIXME please. Precision?
+        return payment.mul(rate).div(1000000000000000000);
     }
 
     /// @notice calculate amount of ether to be payed for given amount of tokens
     function calculatePrice(uint tokens) internal constant returns (uint) {
-        return tokens.div(c_UMTperETH);
+        // FIXME please. Precision?
+        return tokens.mul(1000000000000000000).div(c_UMTperETH);
     }
 
     /// @dev payment processing
@@ -121,12 +142,19 @@ contract PreICO is multiowned, ReentrancyGuard, StatefulMixin, ExternalAccountWa
     exceptsState(State.PAUSED)
     everythingIsSetByOwners()
     {
+        require(payment >= getMinInvestment());
+
         if (getCurrentState() == State.INIT && getCurrentTime() >= getStartTime())
             changeState(State.RUNNING);
 
         require(State.RUNNING == m_state);
 
         if (getCurrentTime() >= getEndTime())
+            finish();
+
+        uint tokensAllowed = getMaximumTokens().sub(m_tokensSold);
+
+        if (tokensAllowed == 0)
             finish();
 
         if (m_finished) {
@@ -136,11 +164,7 @@ contract PreICO is multiowned, ReentrancyGuard, StatefulMixin, ExternalAccountWa
         }
 
         uint currentBalance = m_token.balanceOf(address(this));
-
         uint tokens = calculateTokens(investor, payment);
-        uint tokensAllowed = getMaximumTokens().sub(m_tokensSold);
-
-        assert(0 != tokensAllowed);
 
         uint change;
         bool shouldFinish = false;
@@ -215,6 +239,11 @@ contract PreICO is multiowned, ReentrancyGuard, StatefulMixin, ExternalAccountWa
     /// @notice maximum tokens to be sold during sale.
     function getMaximumTokens() internal constant returns (uint) {
         return 250000000;
+    }
+
+    /// @notice whether there is a next sale after this
+    function hasNextSale() internal constant returns (bool) {
+        return true;
     }
 
     /// @notice starting exchange rate of UMT

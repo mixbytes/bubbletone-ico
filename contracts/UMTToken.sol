@@ -45,8 +45,8 @@ contract UMTToken is CirculatingToken {
     uint8 public constant decimals = 18;
 
     /// @dev starting balance of funds
-    uint internal constant startFundsBalance = 500000000;
+    uint internal constant startFundsBalance = uint(500000000) * (uint(10) ** uint(decimals));
 
     /// @dev starting balance to be sold
-    uint internal constant startSaleBalance = 500000000;
+    uint internal constant startSaleBalance = uint(500000000) * (uint(10) ** uint(decimals));
 }

@@ -26,7 +26,7 @@ contract('UMTToken', function(accounts) {
 
     // converts amount of UMT into UMT-wei
     function UMT(amount) {
-        return web3.toWei(amount, 'finney');
+        return web3.toWei(amount, 'ether');
     };
 
     async function deployToken() {
@@ -45,9 +45,9 @@ contract('UMTToken', function(accounts) {
         it("Funds balance is half of tokens and it can transfer it", async function() {
             const [token, funds, sale] = await deployToken();
 
-            assert.equal(await token.balanceOf(funds, {from: roles.nobody}), 500000000);
-            await token.transfer(roles.nobody, 100000000, {from: funds});
-            assert.equal(await token.balanceOf(funds, {from: roles.nobody}), 400000000);
+            assert((await token.balanceOf(funds, {from: roles.nobody})).eq(UMT(500000000)));
+            await token.transfer(roles.nobody, UMT(100000000), {from: funds});
+            assert((await token.balanceOf(funds, {from: roles.nobody})).eq(UMT(400000000)));
             // nobody else has tokens
             assert.equal(await token.balanceOf(roles.owner1, {from: roles.nobody}), 0);
             assert.equal(await token.balanceOf(roles.investor3, {from: roles.nobody}), 0);
@@ -58,17 +58,17 @@ contract('UMTToken', function(accounts) {
         it("Burn self tokens", async function() {
             const [token, funds, sale] = await deployToken();
 
-            await token.burn(1000, {from: funds});
+            await token.burn(UMT(1000), {from: funds});
 
             let balance = await token.balanceOf(funds);
 
-            assert(balance.eq(new web3.BigNumber(500000000 - 1000)));
+            assert(balance.eq(new web3.BigNumber(UMT(500000000)).sub(UMT(1000))));
         });
 
         it("Burn more then you have", async function() {
             const [token, funds, sale] = await deployToken();
 
-            await expectThrow(token.burn(1000000000, {from: roles.funds}));
+            await expectThrow(token.burn(UMT(1000000000), {from: roles.funds}));
         });
 
         it("Burn when you have nothing", async function() {

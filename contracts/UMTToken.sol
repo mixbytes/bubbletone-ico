@@ -20,10 +20,10 @@ contract UMTToken is StandardToken {
         totalSupply = startFundsBalance + startSaleBalance;
 
         balances[funds] = startFundsBalance;
-        Transfer(this, funds, startFundsBalance);
+        Transfer(address(0), funds, startFundsBalance);
 
         balances[sale] = startSaleBalance;
-        Transfer(this, sale, startSaleBalance);
+        Transfer(address(0), sale, startSaleBalance);
     }
 
     /// @dev burns tokens from address. Owner of the token can burn them

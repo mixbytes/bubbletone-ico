@@ -22,6 +22,7 @@ const ICOEndTime = ICOStartTime + 12*24*60*60;
 contract('IntegrationTest', function(accounts) {
     const roles = {
         funds: accounts[0],
+        pool: accounts[0],
         owner3: accounts[0],
         owner1: accounts[1],
         owner2: accounts[2],
@@ -41,7 +42,7 @@ contract('IntegrationTest', function(accounts) {
         it("Integration. No hard caps", async function(){
             //console.log('1');
             const preico = await PreICO.new(
-                [roles.owner1, roles.owner2, roles.owner3], roles.funds, {from: roles.nobody}
+                [roles.owner1, roles.owner2, roles.owner3], roles.funds, roles.pool, {from: roles.nobody}
             );
             //console.log('2');
             // Checking that buying tokens doesn't work
@@ -66,7 +67,7 @@ contract('IntegrationTest', function(accounts) {
             //console.log('5');
             // So, let's deploy ico contract and token
             const ico = await ICO.new(
-                [roles.owner1, roles.owner2, roles.owner3], roles.funds, {from: roles.nobody}
+                [roles.owner1, roles.owner2, roles.owner3], roles.funds, roles.pool, {from: roles.nobody}
             );
             //console.log('6');
             const token = await UMTToken.new(roles.funds, preico.address, {from: roles.owner1});
@@ -163,11 +164,11 @@ contract('IntegrationTest', function(accounts) {
                 }));
             }
             //console.log('18');
-            // Let's check that all tokens that were owned by preICO moved to ICO
+            // Let's check that all tokens that were owned by preICO moved to ICO (consider x2 into pools)
             assert.equal(await token.balanceOf(preico.address, {from: roles.nobody}), 0);
             //console.log('18.1');
             let icoTokens = await token.balanceOf(ico.address);
-            assert(icoTokens.eq(tokensLeft));
+            assert(icoTokens.eq(tokensLeft.sub(await preico.getTokensSold())));
             //console.log('19');
             // Let's start ICO. But before prepare it
             for (const _from of [roles.owner2, roles.owner3]) {

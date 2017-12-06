@@ -17,6 +17,7 @@ const endTime = startTime + 12*24*60*60;
 contract('SalesUnit', function(accounts) {
     const roles = {
         funds: accounts[0],
+        pool: accounts[0],
         owner3: accounts[0],
         owner1: accounts[1],
         owner2: accounts[2],
@@ -31,7 +32,7 @@ contract('SalesUnit', function(accounts) {
      */
     async function instantiate(saleClass, initFull=true) {
         const crowdsale = await saleClass.new(
-            [roles.owner1, roles.owner2, roles.owner3], roles.funds, {from: roles.nobody}
+            [roles.owner1, roles.owner2, roles.owner3], roles.funds, roles.pool, {from: roles.nobody}
         );
 
         const nextSale = roles.owner2;

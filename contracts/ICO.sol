@@ -5,8 +5,8 @@ import './PreICO.sol';
 
 /// @title ICOPlate pre-sale contract
 contract ICO is PreICO {
-    function ICO(address[] _owners, address funds)
-    PreICO(_owners, funds)
+    function ICO(address[] _owners, address funds, address pool)
+    PreICO(_owners, funds, pool)
     {
     }
 
@@ -17,15 +17,16 @@ contract ICO is PreICO {
         m_token = UMTToken(_token);
         SetToken(_token);
 
-        m_tokensHardCap = m_token.balanceOf(address(this));
+        m_tokensAtStart = m_token.balanceOf(address(this));
 
-        assert(m_tokensHardCap != 0);
+        // m_tokensHardCap = m_token.balanceOf(address(this));
+        //assert(m_tokensHardCap != 0);
     }
 
     /// @notice maximum tokens to be sold during sale.
-    function getMaximumTokensWei() internal constant returns (uint) {
-        return m_tokensHardCap;
-    }
+    //function getMaximumTokensWei() internal constant returns (uint) {
+    //    return m_tokensHardCap;
+    //}
 
     /// @notice whether there is a next sale after this
     function hasNextSale() internal constant returns (bool) {
@@ -48,5 +49,5 @@ contract ICO is PreICO {
         return 100;
     }
 
-    uint m_tokensHardCap;
+    //uint m_tokensHardCap;
 }

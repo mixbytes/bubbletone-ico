@@ -6,8 +6,8 @@ import '../PreICO.sol';
 contract PreICOTestHelper is PreICO {
     using SafeMath for uint256;
 
-    function PreICOTestHelper(address[] _owners, address funds) public
-    PreICO(_owners, funds)
+    function PreICOTestHelper(address[] _owners, address funds, address pool) public
+    PreICO(_owners, funds, pool)
     {
     }
 
@@ -25,6 +25,10 @@ contract PreICOTestHelper is PreICO {
 
     function calculateTokensPublic(address investor, uint payment) public view returns (uint) {
         return calculateTokens(investor, payment);
+    }
+
+    function getTokensSold() public constant returns (uint) {
+        return m_tokensSold;
     }
 
     uint m_time;

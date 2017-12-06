@@ -6,8 +6,8 @@ import '../ICO.sol';
 contract ICOTestHelper is ICO {
     using SafeMath for uint256;
 
-    function ICOTestHelper(address[] _owners, address funds) public
-    ICO(_owners, funds)
+    function ICOTestHelper(address[] _owners, address funds, address pool) public
+    ICO(_owners, funds, pool)
     {
     }
 

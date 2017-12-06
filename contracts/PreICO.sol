@@ -28,11 +28,15 @@ contract PreICO is multiowned, ReentrancyGuard, StatefulMixin, ExternalAccountWa
         _;
     }
 
-    function PreICO(address[] _owners, address funds) public
+    function PreICO(address[] _owners, address funds, address pool) public
     multiowned(_owners, 2)
     ExternalAccountWalletConnector(funds)
     {
         require(3 == _owners.length);
+
+        require(pool != address(0));
+
+        m_pool = pool;
     }
 
     // fallback function as a shortcut
@@ -56,6 +60,9 @@ contract PreICO is multiowned, ReentrancyGuard, StatefulMixin, ExternalAccountWa
         require(address(m_token) == address(0));
 
         m_token = UMTToken(_token);
+
+        m_tokensAtStart = m_token.balanceOf(address(this));
+
         SetToken(_token);
     }
 
@@ -173,6 +180,8 @@ contract PreICO is multiowned, ReentrancyGuard, StatefulMixin, ExternalAccountWa
 
         changeState(State.SUCCEEDED);
 
+        m_token.transfer(m_pool, m_tokensSold);
+
         processRemainingTokens();
 
         m_finished = true;
@@ -241,7 +250,7 @@ contract PreICO is multiowned, ReentrancyGuard, StatefulMixin, ExternalAccountWa
 
     /// @notice maximum tokens to be sold during sale.
     function getMaximumTokensWei() internal constant returns (uint) {
-        return uint(250000000) * uint(1e18);
+        return m_tokensAtStart.div(2);
     }
 
     /// @notice whether there is a next sale after this
@@ -253,9 +262,12 @@ contract PreICO is multiowned, ReentrancyGuard, StatefulMixin, ExternalAccountWa
     uint public m_EndTime = 0;
 
     UMTToken public m_token;
+
     address m_nextSale = address(0);
+    address m_pool = address(0);
 
     uint m_tokensSold;
+    uint m_tokensAtStart;
     uint m_totalPayments;
 
     bool m_finished = false;

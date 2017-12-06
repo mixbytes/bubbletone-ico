@@ -50,7 +50,7 @@ contract PreICO is multiowned, ReentrancyGuard, StatefulMixin, ExternalAccountWa
 
     /// @notice set token address
     function setToken(address _token) public onlymanyowners(keccak256(msg.data))
-    exceptsState(State.SUCCEEDED)
+    requiresState(State.INIT)
     {
         // Could be called only once
         require(address(m_token) == address(0));
@@ -61,7 +61,7 @@ contract PreICO is multiowned, ReentrancyGuard, StatefulMixin, ExternalAccountWa
 
     /// @notice set next sale address to transfer lasting tokens after sale
     function setNextSale(address sale) public onlymanyowners(keccak256(msg.data))
-    exceptsState(State.SUCCEEDED)
+    requiresState(State.INIT)
     {
         // Could be called only once
         require(m_nextSale == address(0));
@@ -72,13 +72,9 @@ contract PreICO is multiowned, ReentrancyGuard, StatefulMixin, ExternalAccountWa
 
     /// @notice set start time of the sale
     function setStartTime(uint _time) public onlymanyowners(keccak256(msg.data))
-    exceptsState(State.SUCCEEDED)
+    requiresState(State.INIT)
     {
         require(_time >= getCurrentTime());
-
-        // Check if sale has already started
-        if (m_StartTime != 0)
-            require(getCurrentTime() < m_StartTime);
 
         if (m_EndTime != 0)
             require(_time < m_EndTime);
@@ -90,13 +86,9 @@ contract PreICO is multiowned, ReentrancyGuard, StatefulMixin, ExternalAccountWa
 
     /// @notice set end time of the sale
     function setEndTime(uint _time) public onlymanyowners(keccak256(msg.data))
-    exceptsState(State.SUCCEEDED)
+    requiresState(State.INIT)
     {
         require(_time >= getCurrentTime());
-
-        // Check if sale has already started
-        if (m_StartTime != 0)
-            require(getCurrentTime() < m_StartTime);
 
         if (m_StartTime != 0)
             require(_time > m_StartTime);
@@ -108,7 +100,6 @@ contract PreICO is multiowned, ReentrancyGuard, StatefulMixin, ExternalAccountWa
 
     /// @notice pauses sale
     function pause() external requiresState(State.RUNNING) onlyowner
-    exceptsState(State.SUCCEEDED)
     {
         changeState(State.PAUSED);
     }
@@ -139,7 +130,6 @@ contract PreICO is multiowned, ReentrancyGuard, StatefulMixin, ExternalAccountWa
     function buyInternal(address investor, uint payment)
     internal
     nonReentrant
-    exceptsState(State.PAUSED)
     everythingIsSetByOwners()
     {
         require(payment >= getMinInvestment());
@@ -229,11 +219,6 @@ contract PreICO is multiowned, ReentrancyGuard, StatefulMixin, ExternalAccountWa
     /// @notice minimal amount of investment
     function getMinInvestment() public constant returns (uint) {
         return 10 finney;
-    }
-
-    /// @notice minimum amount of funding to consider preICO as successful
-    function getMinimumFunds() internal constant returns (uint) {
-        return 0;
     }
 
     /// @notice maximum tokens to be sold during sale.

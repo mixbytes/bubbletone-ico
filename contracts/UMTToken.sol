@@ -5,7 +5,7 @@ import 'mixbytes-solidity/contracts/token/CirculatingToken.sol';
 import 'zeppelin-solidity/contracts/math/SafeMath.sol';
 
 
-/// @title ICOPlate coin contract
+/// @title Universal Mobile Token contract
 contract UMTToken is CirculatingToken {
     using SafeMath for uint256;
 

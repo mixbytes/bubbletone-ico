@@ -73,8 +73,8 @@ contract('IntegrationTest', function(accounts) {
             //console.log('7');
             // Checking that balances of token are distributed between sale and funds specified by owner
             // and nobody else has tokens
-            assert.equal(await token.balanceOf(roles.funds, {from: roles.nobody}), 500000000);
-            assert.equal(await token.balanceOf(preico.address, {from: roles.nobody}), 500000000);
+            assert.equal(await token.balanceOf(roles.funds, {from: roles.nobody}), 500000000 * 1e18);
+            assert.equal(await token.balanceOf(preico.address, {from: roles.nobody}), 500000000 * 1e18);
             assert.equal(await token.balanceOf(roles.owner1, {from: roles.nobody}), 0);
             assert.equal(await token.balanceOf(roles.investor3, {from: roles.nobody}), 0);
             //console.log('8');
@@ -105,7 +105,7 @@ contract('IntegrationTest', function(accounts) {
 
             let saleTokensBefore = await token.balanceOf(preico.address, {from: roles.nobody});
             let fundsBalanceBefore = await web3.eth.getBalance(roles.funds);
-
+            //console.log('13');
             await preico.buy({
                 from: roles.investor1,
                 value: web3.toWei(20, 'finney'),
@@ -120,9 +120,14 @@ contract('IntegrationTest', function(accounts) {
 
             // Checking that funds go properly and tokens transferred too
 
-            let tokensDiff = saleTokensBefore - tokensLeft;
+            let tokensDiff = new web3.BigNumber(saleTokensBefore).sub(new web3.BigNumber(tokensLeft));
             assert(tokensDiff > 0);
-            assert.equal(await token.balanceOf(roles.investor1, {from: roles.nobody}), tokensDiff);
+
+            //console.log('14', tokensDiff);
+
+            assert(
+                new web3.BigNumber(await token.balanceOf(roles.investor1, {from: roles.nobody})).eq(tokensDiff)
+            );
 
             let spentMoney = balanceBefore - balanceAfter;
             assert.equal(spentMoney, web3.toWei(20, 'finney'));
@@ -160,7 +165,7 @@ contract('IntegrationTest', function(accounts) {
             //console.log('18');
             // Let's check that all tokens that were owned by preICO moved to ICO
             assert.equal(await token.balanceOf(preico.address, {from: roles.nobody}), 0);
-            //console.log('18.1', ico.address, tokensLeft, await token.balanceOf(ico.address));
+            //console.log('18.1');
             let icoTokens = await token.balanceOf(ico.address);
             assert(icoTokens.eq(tokensLeft));
             //console.log('19');
@@ -199,10 +204,16 @@ contract('IntegrationTest', function(accounts) {
             // Checking that funds go properly and tokens transferred too
             tokensLeft = await token.balanceOf(ico.address, {from: roles.nobody});
 
-            tokensDiff = saleTokensBefore - tokensLeft;
+
+            tokensDiff = new web3.BigNumber(saleTokensBefore).sub(new web3.BigNumber(tokensLeft));
             assert(tokensDiff > 0);
 
-            assert.equal(await token.balanceOf(roles.investor1, {from: roles.nobody}), parseInt(investorTokensBefore) + parseInt(tokensDiff));
+            assert(
+                new web3.BigNumber(await token.balanceOf(roles.investor1, {from: roles.nobody})).eq(
+                    new web3.BigNumber(investorTokensBefore).plus(tokensDiff)
+                )
+            );
+
             spentMoney = balanceBefore - balanceAfter;
             assert.equal(spentMoney, web3.toWei(100, 'finney'));
             //console.log('25');

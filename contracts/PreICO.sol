@@ -128,7 +128,7 @@ contract PreICO is multiowned, ReentrancyGuard, StatefulMixin, ExternalAccountWa
         if (getCurrentTime() >= getEndTime())
             finish();
 
-        uint tokensAllowed = getMaximumTokens().sub(m_tokensSold);
+        uint tokensAllowed = getMaximumTokensWei().sub(m_tokensSold);
 
         if (tokensAllowed == 0)
             finish();
@@ -240,7 +240,7 @@ contract PreICO is multiowned, ReentrancyGuard, StatefulMixin, ExternalAccountWa
     }
 
     /// @notice maximum tokens to be sold during sale.
-    function getMaximumTokens() internal constant returns (uint) {
+    function getMaximumTokensWei() internal constant returns (uint) {
         return uint(250000000) * uint(1e18);
     }
 

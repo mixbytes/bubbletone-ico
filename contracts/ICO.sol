@@ -23,7 +23,7 @@ contract ICO is PreICO {
     }
 
     /// @notice maximum tokens to be sold during sale.
-    function getMaximumTokens() internal constant returns (uint) {
+    function getMaximumTokensWei() internal constant returns (uint) {
         return m_tokensHardCap;
     }
 

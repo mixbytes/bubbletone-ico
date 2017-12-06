@@ -24,9 +24,6 @@ contract ICO is PreICO {
         m_tokensHardCap = m_token.balanceOf(address(this));
 
         assert(m_tokensHardCap != 0);
-
-        if (m_tokensHardCap > 250000000)
-            m_tokensHardCap = 250000000;
     }
 
     function finish() internal {
@@ -48,8 +45,19 @@ contract ICO is PreICO {
         return false;
     }
 
-    /// @notice starting exchange rate of UMT
-    // FIXME: need details
-    uint public constant c_UMTperETH = 50000;
+    function tokenPriceInCents() internal view returns (uint) {
+        if (getCurrentTime() < getStartTime() + 5 days) return 50;
+        if (getCurrentTime() < getStartTime() + 10 days) return 55;
+        if (getCurrentTime() < getStartTime() + 15 days) return 60;
+        if (getCurrentTime() < getStartTime() + 20 days) return 65;
+        if (getCurrentTime() < getStartTime() + 25 days) return 70;
+        if (getCurrentTime() < getStartTime() + 30 days) return 75;
+        if (getCurrentTime() < getStartTime() + 35 days) return 80;
+        if (getCurrentTime() < getStartTime() + 40 days) return 85;
+        if (getCurrentTime() < getStartTime() + 45 days) return 90;
+        if (getCurrentTime() < getStartTime() + 50 days) return 95;
+        return 100;
+    }
+
     uint m_tokensHardCap;
 }

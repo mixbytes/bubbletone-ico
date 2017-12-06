@@ -112,20 +112,6 @@ contract PreICO is multiowned, ReentrancyGuard, StatefulMixin, ExternalAccountWa
 
     /// INTERNAL METHODS
 
-    /// @notice claculate number of token by goven paymen
-    function calculateTokens(address /*investor*/, uint payment) internal constant returns (uint) {
-        uint rate = c_UMTperETH;
-
-        // FIXME please. Precision?
-        return payment.mul(rate).div(1000000000000000000);
-    }
-
-    /// @notice calculate amount of ether to be payed for given amount of tokens
-    function calculatePrice(uint tokens) internal constant returns (uint) {
-        // FIXME please. Precision?
-        return tokens.mul(1000000000000000000).div(c_UMTperETH);
-    }
-
     /// @dev payment processing
     function buyInternal(address investor, uint payment)
     internal
@@ -153,7 +139,6 @@ contract PreICO is multiowned, ReentrancyGuard, StatefulMixin, ExternalAccountWa
             return;
         }
 
-        uint currentBalance = m_token.balanceOf(address(this));
         uint tokens = calculateTokens(investor, payment);
 
         uint change;
@@ -201,6 +186,30 @@ contract PreICO is multiowned, ReentrancyGuard, StatefulMixin, ExternalAccountWa
         m_token.transfer(m_nextSale, currentBalance);
     }
 
+
+    function tokenPriceInCents() internal view returns (uint) {
+        return 42;
+    }
+
+    function ETHPriceInCents() internal view returns (uint) {
+        return m_ETHPriceInCents;
+    }
+
+    function setETHPriceInCents(uint price) public onlyowner {
+        m_ETHPriceInCents = price;
+    }
+
+    /// @notice calculate number of token for given payment
+    function calculateTokens(address /*investor*/, uint payment) internal view returns (uint) {
+        return payment.mul(ETHPriceInCents()).div(tokenPriceInCents());
+    }
+
+    /// @notice calculate amount of ether to be payed for given amount of tokens
+    function calculatePrice(uint tokens) internal view returns (uint) {
+        return tokens.mul(tokenPriceInCents()).div(ETHPriceInCents());
+    }
+
+
     /// @notice start time of the sale
     function getStartTime() internal constant returns (uint) {
         return m_StartTime;
@@ -223,17 +232,13 @@ contract PreICO is multiowned, ReentrancyGuard, StatefulMixin, ExternalAccountWa
 
     /// @notice maximum tokens to be sold during sale.
     function getMaximumTokens() internal constant returns (uint) {
-        return 250000000;
+        return uint(250000000) * uint(1e18);
     }
 
     /// @notice whether there is a next sale after this
     function hasNextSale() internal constant returns (bool) {
         return true;
     }
-
-    /// @notice starting exchange rate of UMT
-    // FIXME: need details
-    uint public constant c_UMTperETH = 50000;
 
     uint public m_StartTime = 0;
     uint public m_EndTime = 0;
@@ -245,4 +250,6 @@ contract PreICO is multiowned, ReentrancyGuard, StatefulMixin, ExternalAccountWa
     uint m_totalPayments;
 
     bool m_finished = false;
+
+    uint m_ETHPriceInCents = 44800;
 }

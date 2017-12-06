@@ -1,19 +1,19 @@
 pragma solidity 0.4.18;
 
 
-import 'mixbytes-solidity/contracts/token/CirculatingToken.sol';
+import 'zeppelin-solidity/contracts/token/StandardToken.sol';
 import 'zeppelin-solidity/contracts/math/SafeMath.sol';
 
 
 /// @title Universal Mobile Token contract
-contract UMTToken is CirculatingToken {
+contract UMTToken is StandardToken {
     using SafeMath for uint256;
 
     event Burn(address indexed to, uint256 amount);
     event Activate(address sender);
 
     function UMTToken(address funds, address sale) public
-    CirculatingToken()
+    StandardToken()
     {
         require(funds != address(0));
 
@@ -24,8 +24,6 @@ contract UMTToken is CirculatingToken {
 
         balances[sale] = startSaleBalance;
         Transfer(this, sale, startSaleBalance);
-
-        enableCirculation();
     }
 
     /// @dev burns tokens from address. Owner of the token can burn them

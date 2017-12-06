@@ -39,7 +39,8 @@ contract('UMTToken', function(accounts) {
         it("Circulation enabled at start", async function() {
             const [token, funds, sale] = await deployToken();
 
-            assert.equal(await token.m_isCirculating(), true);
+            await token.transfer(roles.nobody, UMT(100000000), {from: funds});
+            assert((await token.balanceOf(roles.nobody, {from: roles.nobody})).eq(UMT(100000000)));
         });
 
         it("Funds balance is half of tokens and it can transfer it", async function() {

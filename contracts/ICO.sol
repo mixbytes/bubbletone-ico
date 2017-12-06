@@ -32,6 +32,8 @@ contract ICO is PreICO {
         return false;
     }
 
+    event X(uint i);
+
     function tokenPriceInCents() internal view returns (uint) {
         if (getCurrentTime() < getStartTime() + 5 days) return 50;
         if (getCurrentTime() < getStartTime() + 10 days) return 55;

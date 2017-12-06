@@ -10,10 +10,6 @@ contract ICO is PreICO {
     {
     }
 
-    function transferTokensToNextSale() internal {
-        // No next sale after ICO
-    }
-
     /// @notice set token address
     function setToken(address _token) public onlymanyowners(keccak256(msg.data)) {
         require(address(m_token) == address(0));
@@ -24,15 +20,6 @@ contract ICO is PreICO {
         m_tokensHardCap = m_token.balanceOf(address(this));
 
         assert(m_tokensHardCap != 0);
-    }
-
-    function finish() internal {
-        super.finish();
-
-        // Burn all lasting tokens
-        uint tokensLeft = m_token.balanceOf(address(this));
-        if (0 != tokensLeft)
-            m_token.burn(tokensLeft);
     }
 
     /// @notice maximum tokens to be sold during sale.

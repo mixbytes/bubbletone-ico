@@ -173,17 +173,26 @@ contract PreICO is multiowned, ReentrancyGuard, StatefulMixin, ExternalAccountWa
 
         changeState(State.SUCCEEDED);
 
-        transferTokensToNextSale();
+        processRemainingTokens();
 
         m_finished = true;
     }
 
-    /// @notice transfers all lasting tokens to the next sale after finish
-    function transferTokensToNextSale() internal {
-        assert(m_nextSale != address(0));
-
+    /// @notice transfers all remaining tokens to the next sale or burns tokens if there is no next sale
+    function processRemainingTokens() internal {
         uint currentBalance = m_token.balanceOf(address(this));
-        m_token.transfer(m_nextSale, currentBalance);
+        if (0 == currentBalance)
+            return;
+
+        if (hasNextSale()) {
+            assert(m_nextSale != address(0));
+
+            m_token.transfer(m_nextSale, currentBalance);
+        }
+        else {
+            // Burn all remaining tokens
+            m_token.burn(currentBalance);
+        }
     }
 
 

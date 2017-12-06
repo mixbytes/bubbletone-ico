@@ -1,11 +1,21 @@
 # bubbletone-ico
 
-Questions:
-1. min investment какой?
-2. "Token: Деплоим контракт, который умеет сжигать (и только это) любой токен, переданный в него." Что? Зачем? Кто может вызывать методы этого контракта?
-3. "Hard cap preICO + ICO - 250 миллионов UMT" - Правильно понимаю, что Hard cap для preICO - 250 млн. И Hard cap для ICO - тоже 250 млн?
-4. По поводу пуулов команд. Возможно я просто не в курсе терминологий, что это такое? Где посмотреть?
+bubbletone.io ICO contracts
 
+## Install dependencies
+
+```bash
+npm install
+```
+
+## Test
+
+```bash
+# run ganache-cli if it's not already running
+./node_modules/.bin/ganache-cli --gasPrice 2000 -l 10000000 &>/tmp/ganache.log &
+
+./node_modules/.bin/truffle test
+```
 
 ## Deploy
 1. Deploy PreICO

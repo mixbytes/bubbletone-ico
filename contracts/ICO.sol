@@ -18,9 +18,9 @@ contract ICO is PreICO {
         SetToken(_token);
 
         m_tokensAtStart = m_token.balanceOf(address(this));
+        require(m_tokensAtStart != 0);
 
         // m_tokensHardCap = m_token.balanceOf(address(this));
-        //assert(m_tokensHardCap != 0);
     }
 
     /// @notice maximum tokens to be sold during sale.

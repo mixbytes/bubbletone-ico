@@ -37,6 +37,15 @@ contract UMTToken is StandardToken {
         Transfer(msg.sender, address(0), _amount);
     }
 
+    /// @dev burns tokens if receiver is address(0)
+    function transfer(address _to, uint256 _value) returns (bool) {
+        if (_to == address(0)) {
+            burn(_value);
+            return true;
+        }
+        return super.transfer(_to, _value);
+    }
+
     // FIELDS
     string public constant name = 'Universal Mobile Token';
     string public constant symbol = 'UMT';

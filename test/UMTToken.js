@@ -78,5 +78,32 @@ contract('UMTToken', function(accounts) {
             await expectThrow(token.burn(1, {from: roles.nobody}));
             await expectThrow(token.burn(1, {from: roles.owner1}));
         });
+
+        it("Burn via transfer to address(0)", async function() {
+            const [token, funds, sale] = await deployToken();
+
+            let balanceBefore = new web3.BigNumber(await token.balanceOf(funds));
+
+            await token.transfer("0x0000000000000000000000000000000000000000", 100, {from: funds});
+
+            let balanceAfter = new web3.BigNumber(await token.balanceOf(funds));
+
+            assert.equal(balanceBefore.sub(balanceAfter), 100);
+        });
+
+        it("Transfer works", async function() {
+            const [token, funds, sale] = await deployToken();
+
+            let fundsBalanceBefore = new web3.BigNumber(await token.balanceOf(funds));
+            let investorBalanceBefore = new web3.BigNumber(await token.balanceOf(roles.investor1));
+
+            await token.transfer(roles.investor1, 200, {from: funds});
+
+            let fundsBalanceAfter = new web3.BigNumber(await token.balanceOf(funds));
+            let investorBalanceAfter = new web3.BigNumber(await token.balanceOf(roles.investor1));
+
+            assert.equal(fundsBalanceBefore.sub(fundsBalanceAfter), 200);
+            assert.equal(investorBalanceAfter.sub(investorBalanceBefore), 200);
+        });
     });
 });

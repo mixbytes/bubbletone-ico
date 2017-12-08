@@ -32,5 +32,7 @@ contract PreICOTestHelper is PreICO {
     }
 
     uint m_time;
+
+    uint constant m_ETHPriceInCentsUpdate = 10;
 }
 

@@ -6,16 +6,20 @@ import 'zeppelin-solidity/contracts/math/SafeMath.sol';
 import 'mixbytes-solidity/contracts/crowdsale/ExternalAccountWalletConnector.sol';
 import 'mixbytes-solidity/contracts/ownership/multiowned.sol';
 import 'zeppelin-solidity/contracts/ReentrancyGuard.sol';
+import "./oraclize/usingOraclize.sol";
 
 
 /// @title pre-ico contract
-contract PreICO is multiowned, ReentrancyGuard, StatefulMixin, ExternalAccountWalletConnector {
+contract PreICO is multiowned, ReentrancyGuard, StatefulMixin, ExternalAccountWalletConnector, usingOraclize {
     using SafeMath for uint256;
 
     event SetToken(address token);
     event SetNextSale(address sale);
     event SellTokens(address investor, uint tokens, uint payment);
     event SetTime(uint time, bool isStart);
+
+    event newOraclizeQuery(string description);
+    event newETHPrice(uint price);
 
     /// @notice all params are set by owners to start sale
     modifier everythingIsSetByOwners() {
@@ -37,6 +41,9 @@ contract PreICO is multiowned, ReentrancyGuard, StatefulMixin, ExternalAccountWa
         require(pool != address(0));
 
         m_pool = pool;
+
+        // Use it when testing with testrpc and etherium bridge. Don't forget to change address
+        //OAR = OraclizeAddrResolverI(0x6f485C8BF6fc43eA212E93BBF8ce046C7f1cb475);
     }
 
     // fallback function as a shortcut
@@ -115,6 +122,39 @@ contract PreICO is multiowned, ReentrancyGuard, StatefulMixin, ExternalAccountWa
     function unpause() external requiresState(State.PAUSED) onlymanyowners(keccak256(msg.data))
     {
         changeState(State.RUNNING);
+        updateETHPriceInCents();
+    }
+
+
+    /// @notice update price if ETH in cents
+    function updateETHPriceInCents() payable {
+        if (oraclize_getPrice("URL") > this.balance) {
+            newOraclizeQuery("Oraclize request fail. Not enough ether");
+        } else {
+            newOraclizeQuery("Oraclize query was sent");
+            oraclize_query(
+                m_ETHPriceInCentsUpdate,
+                "URL",
+                "json(https://api.coinmarketcap.com/v1/ticker/ethereum/?convert=USD).0.price_usd"
+            );
+        }
+    }
+
+    /// @notice Called on ETH price update by Oraclize
+    function __callback(bytes32 myid, string result, bytes proof) {
+        if (msg.sender != oraclize_cbAddress())
+            throw;
+
+        uint newPrice = parseInt(result).mul(100);
+
+        require(newPrice > 0);
+
+        m_ETHPriceInCents = newPrice;
+
+        newETHPrice(m_ETHPriceInCents);
+
+        if (m_state == State.INIT || m_state == State.RUNNING)
+            updateETHPriceInCents();
     }
 
     /// INTERNAL METHODS
@@ -213,6 +253,10 @@ contract PreICO is multiowned, ReentrancyGuard, StatefulMixin, ExternalAccountWa
         return m_ETHPriceInCents;
     }
 
+    //function getETHPriceInCents() public view returns (uint) {
+    //    return m_ETHPriceInCents;
+    //}
+
     function setETHPriceInCents(uint price) public onlyowner {
         m_ETHPriceInCents = price;
     }
@@ -273,4 +317,7 @@ contract PreICO is multiowned, ReentrancyGuard, StatefulMixin, ExternalAccountWa
     bool m_finished = false;
 
     uint m_ETHPriceInCents = 44800;
+
+    // @dev Update ETH price in cents every hour
+    uint constant m_ETHPriceInCentsUpdate = 3600;
 }

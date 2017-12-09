@@ -46,7 +46,7 @@ ICO.updateETHPriceInCents()
 ```
 We recommend to start it a little bit before sale but not to early to safe ether.
 
-For ICO:
+For ICO (*Setup in only after PreICO is finished*):
 - ICO.setToken
 - ICO.setStartTime
 - ICO.setEndTime

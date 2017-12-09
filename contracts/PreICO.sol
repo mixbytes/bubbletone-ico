@@ -18,8 +18,8 @@ contract PreICO is multiowned, ReentrancyGuard, StatefulMixin, ExternalAccountWa
     event SellTokens(address investor, uint tokens, uint payment);
     event SetTime(uint time, bool isStart);
 
-    event newOraclizeQuery(string description);
-    event newETHPrice(uint price);
+    event NewOraclizeQuery(string description);
+    event NewETHPrice(uint price);
 
     /// @notice all params are set by owners to start sale
     modifier everythingIsSetByOwners() {
@@ -125,18 +125,31 @@ contract PreICO is multiowned, ReentrancyGuard, StatefulMixin, ExternalAccountWa
         updateETHPriceInCents();
     }
 
-
     /// @notice update price if ETH in cents
     function updateETHPriceInCents() payable {
         if (oraclize_getPrice("URL") > this.balance) {
-            newOraclizeQuery("Oraclize request fail. Not enough ether");
+            NewOraclizeQuery("Oraclize request fail. Not enough ether");
         } else {
-            newOraclizeQuery("Oraclize query was sent");
+            NewOraclizeQuery("Oraclize query was sent");
             oraclize_query(
                 m_ETHPriceInCentsUpdate,
                 "URL",
                 "json(https://api.coinmarketcap.com/v1/ticker/ethereum/?convert=USD).0.price_usd"
             );
+        }
+    }
+
+    /// @notice pause regular price update
+    function turnOffETHPriceUpdate() public exceptsState(State.SUCCEEDED) onlyowner
+    {
+        isEHTPriceUpdateOn = false;
+    }
+
+    function turnOnETHPriceUpdate() public exceptsState(State.SUCCEEDED) onlyowner
+    {
+        if (!isEHTPriceUpdateOn) {
+            isEHTPriceUpdateOn = true;
+            updateETHPriceInCents();
         }
     }
 
@@ -151,9 +164,9 @@ contract PreICO is multiowned, ReentrancyGuard, StatefulMixin, ExternalAccountWa
 
         m_ETHPriceInCents = newPrice;
 
-        newETHPrice(m_ETHPriceInCents);
+        NewETHPrice(m_ETHPriceInCents);
 
-        if (m_state == State.INIT || m_state == State.RUNNING)
+        if (isEHTPriceUpdateOn && (m_state == State.INIT || m_state == State.RUNNING))
             updateETHPriceInCents();
     }
 
@@ -318,6 +331,8 @@ contract PreICO is multiowned, ReentrancyGuard, StatefulMixin, ExternalAccountWa
 
     uint m_ETHPriceInCents = 44800;
 
+    /// @dev Whether update ETH price every N seconds
+    bool isEHTPriceUpdateOn = true;
     // @dev Update ETH price in cents every hour
     uint constant m_ETHPriceInCentsUpdate = 3600;
 }

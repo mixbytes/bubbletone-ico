@@ -32,6 +32,35 @@ contract PreICO is multiowned, ReentrancyGuard, StatefulMixin, ExternalAccountWa
         _;
     }
 
+
+    /** Last recorded funds */
+    uint256 public m_lastFundsAmount;
+
+    /**
+     * Automatic check for unaccounted withdrawals
+     * @param _investor optional refund parameter
+     * @param _payment optional refund parameter
+     */
+    modifier fundsChecker(address _investor, uint _payment) {
+        uint atTheBeginning = getTotalInvestmentsStored();
+        if (atTheBeginning < m_lastFundsAmount) {
+            changeState(State.PAUSED);
+            if (_payment > 0) {
+                _investor.transfer(_payment);     // we cant throw (have to save state), so refunding this way
+            }
+            // note that execution of further (but not preceding!) modifiers and functions ends here
+        } else {
+            _;
+
+            if (getTotalInvestmentsStored() < atTheBeginning) {
+                changeState(State.PAUSED);
+            } else {
+                m_lastFundsAmount = getTotalInvestmentsStored();
+            }
+        }
+    }
+
+
     function PreICO(address[] _owners, address funds, address pool) public
     multiowned(_owners, 2)
     ExternalAccountWalletConnector(funds)
@@ -177,6 +206,7 @@ contract PreICO is multiowned, ReentrancyGuard, StatefulMixin, ExternalAccountWa
     internal
     nonReentrant
     everythingIsSetByOwners()
+    fundsChecker(investor, payment)
     {
         require(payment >= getMinInvestment());
 

@@ -68,12 +68,16 @@ contract('SalesUnit', function(accounts) {
 
                 await crowdsale.pause({from: roles.owner1});
 
+                console.log(3);
                 // sale not works
                 await expectThrow(crowdsale.buy({
                     from: roles.investor1,
                     value: web3.toWei(20, 'finney'),
                     gasPrice: 0
                 }));
+
+                // Let's disable oraclize ETH price update before. Because now we don't have ether on contract address
+                await crowdsale.turnOffETHPriceUpdate({from: roles.owner1});
 
                 // Ok. let's unpause now
                 for (const _from of [roles.owner1, roles.owner2]) {

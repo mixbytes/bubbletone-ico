@@ -151,7 +151,9 @@ contract PreICO is multiowned, ReentrancyGuard, StatefulMixin, ExternalAccountWa
     function unpause() external requiresState(State.PAUSED) onlymanyowners(keccak256(msg.data))
     {
         changeState(State.RUNNING);
-        updateETHPriceInCents();
+
+        if (isEHTPriceUpdateOn)
+            updateETHPriceInCents();
     }
 
     /// @notice update price if ETH in cents

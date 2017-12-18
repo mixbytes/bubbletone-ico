@@ -1,5 +1,7 @@
 # bubbletone-ico
 
+![](https://travis-ci.org/mixbytes/bubbletone-ico.svg?branch=master)
+
 bubbletone.io ICO contracts
 
 ## Install dependencies
